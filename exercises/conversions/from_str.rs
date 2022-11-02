@@ -28,8 +28,6 @@ enum ParsePersonError {
     ParseInt(ParseIntError),
 }
 
-// I AM NOT DONE
-
 // Steps:
 // 1. If the length of the provided string is 0, an error should be returned
 // 2. Split the given string on the commas present in it
@@ -46,7 +44,88 @@ enum ParsePersonError {
 impl FromStr for Person {
     type Err = ParsePersonError;
     fn from_str(s: &str) -> Result<Person, Self::Err> {
+        if s.is_empty() {
+            return Err(ParsePersonError::Empty);
+        }
+
+        let mut segments = s.split(",");
+
+        let name_result: Result<String, ParsePersonError> = segments
+            .next()
+            .ok_or(ParsePersonError::NoName).and_then(|str| if str.is_empty() {
+            Err(ParsePersonError::NoName)
+        } else {
+            Ok(str.to_string())
+        });
+
+        if name_result.is_err() {
+            return Err(name_result.unwrap_err());
+        }
+
+        let name = name_result.unwrap();
+
+        let age_result: Result<usize, ParsePersonError> = segments
+            .next()
+            .ok_or(ParsePersonError::BadLen)
+            .and_then(|str| str.parse().map_err(|err| ParsePersonError::ParseInt(err)));
+
+        if segments.next().is_some() {
+            return Err(ParsePersonError::BadLen)
+        }
+
+        if age_result.is_err() {
+            return Err(age_result.unwrap_err());
+        }
+
+        let age = age_result.unwrap();
+
+        Ok(Person {
+            name,
+            age
+        })
     }
+    // fn from_str(s: &str) -> Result<Person, Self::Err> {
+    //     if s.is_empty() {
+    //         return Err(ParsePersonError::Empty);
+    //     }
+    //
+    //     let mut segments = s.split(",");
+    //
+    //     let name_result: Result<String, ParsePersonError> = segments
+    //         .next()
+    //         .ok_or(ParsePersonError::NoName).and_then(|str| if str.is_empty() {
+    //         Err(ParsePersonError::NoName)
+    //     } else {
+    //         Ok(str.to_string())
+    //     });
+    //
+    //
+    //     if name_result.is_err() {
+    //         return Err(name_result.unwrap_err());
+    //     }
+    //
+    //     let name = name_result.unwrap();
+    //
+    //     let age_result: Result<usize, ParsePersonError> = segments
+    //         .next()
+    //         .ok_or(ParsePersonError::BadLen)
+    //         .and_then(|str| str.parse().map_err(|err| ParsePersonError::ParseInt(err)));
+    //
+    //     if (segments.next().is_some()) {
+    //         return Err(ParsePersonError::BadLen)
+    //     }
+    //
+    //     if age_result.is_err() {
+    //         return Err(age_result.unwrap_err());
+    //     }
+    //
+    //     let age = age_result.unwrap();
+    //
+    //     Ok(Person {
+    //         name: name,
+    //         age: age
+    //     })
+    // }
 }
 
 fn main() {
